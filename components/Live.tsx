@@ -1,11 +1,13 @@
 import { useMyPresence, useOthers } from "@liveblocks/react/suspense";
 import LiveCursors from "./cursor/LiveCursors";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import CursorChat from "./cursor/CursorChat";
+import { CursorMode } from "@/types/type";
 
 export default function Live() {
   const others = useOthers();
   const [{ cursor }, updateMyPresence] = useMyPresence() as any;
-  console.log(cursor);
+  const [cursorState, setCursorState] = useState({ mode: CursorMode.Hidden });
 
   const handlePointerMove = useCallback((event: React.PointerEvent) => {
     event.preventDefault();
@@ -16,7 +18,7 @@ export default function Live() {
   }, []);
 
   const handlePointerLeave = useCallback((event: React.PointerEvent) => {
-    event.preventDefault();
+    setCursorState({ mode: CursorMode.Hidden });
     updateMyPresence({ cursor: null, message: null });
   }, []);
 
@@ -26,6 +28,35 @@ export default function Live() {
     updateMyPresence({ cursor: { x, y } });
   }, []);
 
+  useEffect(() => {
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "/") {
+        setCursorState({
+          mode: CursorMode.Chat,
+          previousMessage: null,
+          message: "",
+        });
+      } else if (e.key === "Escape") {
+        updateMyPresence({ message: "" });
+        setCursorState({ mode: CursorMode.Hidden });
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/") {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [updateMyPresence]);
+
   return (
     <div
       onPointerMove={handlePointerMove}
@@ -33,7 +64,15 @@ export default function Live() {
       onPointerDown={handlePointerDown}
       className="h-[100vh] w-full flex justify-center items-center"
     >
-      <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1>;
+      <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1>
+      {cursor && (
+        <CursorChat
+          cursor={cursor}
+          cursorState={cursorState}
+          setCursorState={setCursorState}
+          updateMyPresence={updateMyPresence}
+        />
+      )}
       <LiveCursors others={others} />
     </div>
   );
