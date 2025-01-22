@@ -1,8 +1,6 @@
 import Image from "next/image";
 import styles from "./Avatar.module.css";
 
-const IMAGE_SIZE = 48;
-
 export function Avatar({
   name,
   otherStyles,
