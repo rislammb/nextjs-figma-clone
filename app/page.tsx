@@ -16,11 +16,18 @@ import {
   handleCanvasObjectModified,
 } from "@/lib/canvas";
 import { ActiveElement } from "@/types/type";
-import { useMutation, useStorage } from "@liveblocks/react/suspense";
+import {
+  useMutation,
+  useRedo,
+  useStorage,
+  useUndo,
+} from "@liveblocks/react/suspense";
 import { defaultNavElement } from "@/constants";
-import { handleDelete } from "@/lib/key-events";
+import { handleDelete, handleKeyDown } from "@/lib/key-events";
 
 export default function Home() {
+  const undo = useUndo();
+  const redo = useRedo();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const selectedShapeRef = useRef<string | null>(null);
@@ -49,9 +56,7 @@ export default function Home() {
     const mutableObjects = storage.get("canvasObjects");
 
     if (!mutableObjects || mutableObjects.size === 0) return true;
-    // mutableObjects.clear();
-    for (const [key, value] of mutableObjects.entries()) {
-      console.log(key, value);
+    for (const [key] of mutableObjects.entries()) {
       mutableObjects.delete(key);
     }
 
@@ -65,7 +70,6 @@ export default function Home() {
 
   const handleActiveELement = (element: ActiveElement) => {
     setActiveElement(element);
-    console.log(element);
 
     switch (element?.value) {
       case "reset":
@@ -130,12 +134,19 @@ export default function Home() {
       handleResize({ canvas });
     });
 
+    window.addEventListener("keydown", (e) => {
+      handleKeyDown({
+        e,
+        canvas: fabricRef.current,
+        undo,
+        redo,
+        syncShapeInStorage,
+        deleteShapeFromStorage,
+      });
+    });
+
     return () => {
-      if (fabricRef.current) {
-        // fabricRef.current.dispose();
-        // fabricRef.current = null;
-        canvas.dispose();
-      }
+      canvas.dispose();
     };
   }, []);
 
@@ -151,7 +162,7 @@ export default function Home() {
       />
 
       <main className="flex h-full flex-row">
-        <LeftSidebar />
+        <LeftSidebar allShapes={Array.from(canvasObjects)} />
         <Live canvasRef={canvasRef} />
         <RightSidebar />
       </main>
