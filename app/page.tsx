@@ -17,6 +17,8 @@ import {
 } from "@/lib/canvas";
 import { ActiveElement } from "@/types/type";
 import { useMutation, useStorage } from "@liveblocks/react/suspense";
+import { defaultNavElement } from "@/constants";
+import { handleDelete } from "@/lib/key-events";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,12 +41,48 @@ export default function Home() {
     const shapeData = object.toJSON();
     shapeData.objectId = objectId;
 
-    const canvasObject = storage.get("canvasObjects");
-    canvasObject.set(objectId, shapeData);
+    const mutableObjects = storage.get("canvasObjects");
+    mutableObjects.set(objectId, shapeData);
+  }, []);
+
+  const deleteAllShapes = useMutation(({ storage }) => {
+    const mutableObjects = storage.get("canvasObjects");
+
+    if (!mutableObjects || mutableObjects.size === 0) return true;
+    // mutableObjects.clear();
+    for (const [key, value] of mutableObjects.entries()) {
+      console.log(key, value);
+      mutableObjects.delete(key);
+    }
+
+    return mutableObjects.size === 0;
+  }, []);
+
+  const deleteShapeFromStorage = useMutation(({ storage }, objectId) => {
+    const mutableObjects = storage.get("canvasObjects");
+    mutableObjects.delete(objectId);
   }, []);
 
   const handleActiveELement = (element: ActiveElement) => {
     setActiveElement(element);
+    console.log(element);
+
+    switch (element?.value) {
+      case "reset":
+        deleteAllShapes();
+        fabricRef.current?.clear();
+        setActiveElement(defaultNavElement);
+        break;
+
+      case "delete":
+        handleDelete(fabricRef.current as any, deleteShapeFromStorage);
+        setActiveElement(defaultNavElement);
+
+        break;
+
+      default:
+        break;
+    }
     selectedShapeRef.current = element?.value as string;
   };
 
@@ -94,8 +132,9 @@ export default function Home() {
 
     return () => {
       if (fabricRef.current) {
-        fabricRef.current.dispose();
-        fabricRef.current = null;
+        // fabricRef.current.dispose();
+        // fabricRef.current = null;
+        canvas.dispose();
       }
     };
   }, []);
