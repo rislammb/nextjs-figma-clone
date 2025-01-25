@@ -99,7 +99,7 @@ export const handleImageUpload = ({
   const reader = new FileReader();
 
   reader.onload = () => {
-    fabric.Image.fromURL(reader.result as string, (img) => {
+    fabric.FabricImage.fromURL(reader.result as string).then((img) => {
       img.scaleToWidth(200);
       img.scaleToHeight(200);
 

@@ -24,6 +24,7 @@ import {
 } from "@liveblocks/react/suspense";
 import { defaultNavElement } from "@/constants";
 import { handleDelete, handleKeyDown } from "@/lib/key-events";
+import { handleImageUpload } from "@/lib/shapes";
 
 export default function Home() {
   const undo = useUndo();
@@ -34,6 +35,7 @@ export default function Home() {
   const isDrawing = useRef(false);
   const shapeRef = useRef<fabric.Object | null>(null);
   const activeObjectRef = useRef<fabric.Object | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [activeElement, setActiveElement] = useState<ActiveElement>({
     name: "",
@@ -81,7 +83,15 @@ export default function Home() {
       case "delete":
         handleDelete(fabricRef.current as any, deleteShapeFromStorage);
         setActiveElement(defaultNavElement);
+        break;
 
+      case "image":
+        imageInputRef.current?.click();
+        isDrawing.current = false;
+
+        if (fabricRef.current) {
+          fabricRef.current.isDrawingMode = false;
+        }
         break;
 
       default:
@@ -159,6 +169,17 @@ export default function Home() {
       <Navbar
         activeElement={activeElement}
         handleActiveElement={handleActiveELement}
+        imageInputRef={imageInputRef}
+        handleImageUpload={(e: any) => {
+          e.stopPropagation();
+
+          handleImageUpload({
+            file: e.target.files[0],
+            canvas: fabricRef as any,
+            shapeRef,
+            syncShapeInStorage,
+          });
+        }}
       />
 
       <main className="flex h-full flex-row">
