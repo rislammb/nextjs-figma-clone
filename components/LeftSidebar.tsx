@@ -22,12 +22,12 @@ const LeftSidebar = ({ allShapes }: { allShapes: Array<any> }) => {
               >
                 <Image
                   src={info?.icon}
-                  alt='Layer'
+                  alt="Layer"
                   width={16}
                   height={16}
-                  className='group-hover:invert'
+                  className="group-hover:invert"
                 />
-                <h3 className='text-sm font-semibold capitalize'>{info.name}</h3>
+                <h3 className="text-sm font-semibold capitalize">{info.name}</h3>
               </div>
             );
           })}

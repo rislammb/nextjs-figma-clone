@@ -63,6 +63,7 @@ export const handleCanvasMouseDown = ({
   if (selectedShapeRef.current === "freeform") {
     isDrawing.current = true;
     canvas.isDrawingMode = true;
+    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
     return;
   }
@@ -372,12 +373,17 @@ export const renderCanvas = ({
 
 // resize canvas dimensions on window resize
 export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
-  const canvasElement = document.getElementById("canvas");
-  if (!canvasElement || !canvas) return;
+  if (!canvas) return;
 
-  canvas.setDimensions({
-    width: canvasElement.clientWidth,
-    height: canvasElement.clientHeight,
+  const canvasElement = document.getElementById("canvas");
+  if (!canvasElement) return;
+
+  requestAnimationFrame(() => {
+    canvas.setDimensions({
+      width: canvasElement.clientWidth,
+      height: canvasElement.clientHeight,
+    });
+    canvas.renderAll();
   });
 };
 

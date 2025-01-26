@@ -14,6 +14,7 @@ import {
   handleCanvasMouseUp,
   renderCanvas,
   handleCanvasObjectModified,
+  handlePathCreated,
 } from "@/lib/canvas";
 import { ActiveElement } from "@/types/type";
 import {
@@ -140,9 +141,11 @@ export default function Home() {
       handleCanvasObjectModified({ options, syncShapeInStorage });
     });
 
-    window.addEventListener("resize", () => {
+    const handleWindowResize = () => {
       handleResize({ canvas });
-    });
+    };
+
+    window.addEventListener("resize", handleWindowResize);
 
     window.addEventListener("keydown", (e) => {
       handleKeyDown({
@@ -157,6 +160,7 @@ export default function Home() {
 
     return () => {
       canvas.dispose();
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, []);
 
