@@ -15,8 +15,10 @@ import {
   renderCanvas,
   handleCanvasObjectModified,
   handlePathCreated,
+  handleCanvasSelectionCreated,
+  handleCanvasObjectScaling,
 } from "@/lib/canvas";
-import { ActiveElement } from "@/types/type";
+import { ActiveElement, Attributes } from "@/types/type";
 import {
   useMutation,
   useRedo,
@@ -37,12 +39,23 @@ export default function Home() {
   const shapeRef = useRef<fabric.Object | null>(null);
   const activeObjectRef = useRef<fabric.Object | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const isEditingRef = useRef(false);
 
   const [activeElement, setActiveElement] = useState<ActiveElement>({
     name: "",
     value: "",
     icon: "",
   });
+  const [elementAttributes, setElementAttributes] = useState<Attributes>({
+    width: "",
+    height: "",
+    fontSize: "",
+    fontFamily: "",
+    fontWeight: "",
+    fill: "#aabbcc",
+    stroke: "#aabbcc",
+  });
+
   const canvasObjects = useStorage((root) => root.canvasObjects);
   const syncShapeInStorage = useMutation(({ storage }, object) => {
     if (!object) return;
@@ -141,6 +154,18 @@ export default function Home() {
       handleCanvasObjectModified({ options, syncShapeInStorage });
     });
 
+    canvas.on("selection:updated", (options: any) => {
+      handleCanvasSelectionCreated({
+        options,
+        isEditingRef,
+        setElementAttributes,
+      });
+    });
+
+    canvas.on("object:scaling", (options) => {
+      handleCanvasObjectScaling({options, setElementAttributes})
+    })
+
     const handleWindowResize = () => {
       handleResize({ canvas });
     };
@@ -189,7 +214,14 @@ export default function Home() {
       <main className="flex h-full flex-row">
         <LeftSidebar allShapes={Array.from(canvasObjects)} />
         <Live canvasRef={canvasRef} />
-        <RightSidebar />
+        <RightSidebar
+          elementAttributes={elementAttributes}
+          setElementAttributes={setElementAttributes}
+          fabricRef={fabricRef}
+          isEditingRef={isEditingRef}
+          activeObjectRef={activeObjectRef}
+          syncShapeInStorage={syncShapeInStorage}
+        />
       </main>
     </div>
   );
