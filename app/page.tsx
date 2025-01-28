@@ -163,8 +163,8 @@ export default function Home() {
     });
 
     canvas.on("object:scaling", (options) => {
-      handleCanvasObjectScaling({options, setElementAttributes})
-    })
+      handleCanvasObjectScaling({ options, setElementAttributes });
+    });
 
     const handleWindowResize = () => {
       handleResize({ canvas });
