@@ -213,7 +213,7 @@ export default function Home() {
 
       <main className="flex h-full flex-row">
         <LeftSidebar allShapes={Array.from(canvasObjects)} />
-        <Live canvasRef={canvasRef} />
+        <Live canvasRef={canvasRef} undo={undo} redo={redo} />
         <RightSidebar
           elementAttributes={elementAttributes}
           setElementAttributes={setElementAttributes}
