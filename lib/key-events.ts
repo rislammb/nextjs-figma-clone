@@ -28,33 +28,36 @@ export const handlePaste = (
   const clipboardData = localStorage.getItem("clipboard");
 
   if (clipboardData) {
-    try {
-      const parsedObjects = JSON.parse(clipboardData);
-      parsedObjects.forEach((objData: fabric.Object) => {
-        // convert the plain javascript objects retrieved from localStorage into fabricjs objects (deserialization)
-        fabric.util.enlivenObjects(
-          [objData],
-          (enlivenedObjects: fabric.Object[]) => {
-            enlivenedObjects.forEach((enlivenedObj) => {
-              // Offset the pasted objects to avoid overlap with existing objects
-              enlivenedObj.set({
-                left: enlivenedObj.left || 0 + 20,
-                top: enlivenedObj.top || 0 + 20,
-                objectId: uuidv4(),
-                fill: "#aabbcc",
-              } as CustomFabricObject<any>);
+    const parsedObjects = JSON.parse(clipboardData);
+    parsedObjects.forEach((objData: fabric.Object) => {
+      // convert the plain javascript objects retrieved from localStorage into fabricjs objects (deserialization)
+      fabric.util.enlivenObjects([objData]).then((enlivenedObjects) => {
+        enlivenedObjects.forEach((enlivenedObj) => {
+          // Cast to FabricObject to access properties safely
+          const fabricObject = enlivenedObj as fabric.Object & {
+            left?: number;
+            top?: number;
+          };
 
-              canvas.add(enlivenedObj);
-              syncShapeInStorage(enlivenedObj);
-            });
-            canvas.renderAll();
-          },
-          "fabric"
-        );
+          // Offset the pasted objects to avoid overlap with existing objects
+          const newLeft = (fabricObject.left || 0) + 20;
+          const newTop = (fabricObject.top || 0) + 20;
+
+          const customObject: CustomFabricObject<fabric.Object> =
+            fabricObject as CustomFabricObject<fabric.Object>;
+          customObject.set({
+            left: newLeft,
+            top: newTop,
+            objectId: uuidv4(),
+            fill: "#aabbcc",
+          });
+
+          canvas.add(customObject);
+          syncShapeInStorage(customObject);
+        });
+        canvas.renderAll();
       });
-    } catch (error) {
-      console.error("Error parsing clipboard data:", error);
-    }
+    });
   }
 };
 

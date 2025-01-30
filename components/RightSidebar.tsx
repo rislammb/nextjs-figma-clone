@@ -60,7 +60,7 @@ export default function RightSidebar({
       />
       <Color
         inputRef={strokeInputRef}
-        attribute={elementAttributes.stroke}
+        attribute={elementAttributes.stroke as string}
         attributeType="stroke"
         placeholder="stroke"
         handleInputChange={handleInputChange}

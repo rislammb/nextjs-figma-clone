@@ -49,7 +49,7 @@ export const createLine = (pointer: PointerEvent) => {
       stroke: "#aabbcc",
       strokeWidth: 2,
       objectId: uuidv4(),
-    } as CustomFabricObject<fabric.Line>
+    }
   );
 };
 
@@ -62,7 +62,7 @@ export const createText = (pointer: PointerEvent, text: string) => {
     fontSize: 36,
     fontWeight: "400",
     objectId: uuidv4(),
-  } as fabric.ITextOptions);
+  });
 };
 
 export const createSpecificShape = (
@@ -174,9 +174,9 @@ export const bringElement = ({
 
   // bring the selected element to the front
   if (direction === "front") {
-    canvas.bringToFront(selectedElement);
+    canvas.bringObjectToFront(selectedElement);
   } else if (direction === "back") {
-    canvas.sendToBack(selectedElement);
+    canvas.sendObjectToBack(selectedElement);
   }
 
   // canvas.renderAll();

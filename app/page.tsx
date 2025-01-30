@@ -150,11 +150,11 @@ export default function Home() {
       });
     });
 
-    canvas.on("object:modified", (options) => {
+    canvas.on("object:modified", (options: any) => {
       handleCanvasObjectModified({ options, syncShapeInStorage });
     });
 
-    canvas.on("selection:updated", (options: any) => {
+    canvas.on("selection:updated", (options) => {
       handleCanvasSelectionCreated({
         options,
         isEditingRef,
@@ -191,7 +191,7 @@ export default function Home() {
       canvas.dispose();
       window.removeEventListener("resize", handleWindowResize);
     };
-  }, []);
+  }, [deleteShapeFromStorage, redo, syncShapeInStorage, undo]);
 
   useEffect(() => {
     renderCanvas({ fabricRef, canvasObjects, activeObjectRef });

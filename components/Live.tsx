@@ -2,12 +2,11 @@ import {
   useBroadcastEvent,
   useEventListener,
   useMyPresence,
-  useOthers,
 } from "@liveblocks/react/suspense";
 import LiveCursors from "./cursor/LiveCursors";
 import { useCallback, useEffect, useState } from "react";
 import CursorChat from "./cursor/CursorChat";
-import { CursorMode, CursorState, Reaction, ReactionEvent } from "@/types/type";
+import { CursorMode, CursorState, Reaction } from "@/types/type";
 import ReactionSelector from "./reaction/ReactionButton";
 import FlyingReaction from "./reaction/FlyingReaction";
 import useInterval from "@/hooks/useInterval";
@@ -28,8 +27,7 @@ type LiveProps = {
 };
 
 export default function Live({ canvasRef, undo, redo }: LiveProps) {
-  const others = useOthers();
-  const [{ cursor }, updateMyPresence] = useMyPresence() as any;
+  const [{ cursor }, updateMyPresence] = useMyPresence();
   const [cursorState, setCursorState] = useState<CursorState>({
     mode: CursorMode.Hidden,
   });
@@ -67,7 +65,7 @@ export default function Live({ canvasRef, undo, redo }: LiveProps) {
   }, 100);
 
   useEventListener((eventData) => {
-    const event = eventData.event as ReactionEvent;
+    const event = eventData.event;
 
     setReactions((reactions) =>
       reactions.concat([
@@ -90,7 +88,7 @@ export default function Live({ canvasRef, undo, redo }: LiveProps) {
     }
   }, []);
 
-  const handlePointerLeave = useCallback((event: React.PointerEvent) => {
+  const handlePointerLeave = useCallback(() => {
     setCursorState({ mode: CursorMode.Hidden });
     updateMyPresence({ cursor: null, message: null });
   }, []);
@@ -110,16 +108,13 @@ export default function Live({ canvasRef, undo, redo }: LiveProps) {
     [cursorState.mode, setCursorState]
   );
 
-  const handlePointerUp = useCallback(
-    (event: React.PointerEvent) => {
-      setCursorState((state: CursorState) =>
-        cursorState.mode === CursorMode.Reaction
-          ? { ...state, isPressed: true }
-          : state
-      );
-    },
-    [cursorState.mode, setCursorState]
-  );
+  const handlePointerUp = useCallback(() => {
+    setCursorState((state: CursorState) =>
+      cursorState.mode === CursorMode.Reaction
+        ? { ...state, isPressed: true }
+        : state
+    );
+  }, [cursorState.mode, setCursorState]);
 
   const setReaction = useCallback((reaction: string) => {
     setCursorState({
@@ -220,7 +215,7 @@ export default function Live({ canvasRef, undo, redo }: LiveProps) {
           <ReactionSelector setReaction={setReaction} />
         )}
 
-        <LiveCursors others={others} />
+        <LiveCursors />
 
         <CommentsOverlay />
       </ContextMenuTrigger>

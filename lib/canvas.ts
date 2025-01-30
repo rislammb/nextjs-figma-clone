@@ -9,6 +9,7 @@ import {
   CanvasObjectScaling,
   CanvasPathCreated,
   CanvasSelectionCreated,
+  CustomFabricObject,
   RenderCanvas,
 } from "@/types/type";
 import { defaultNavElement } from "@/constants";
@@ -19,14 +20,14 @@ export const initializeFabric = ({
   fabricRef,
   canvasRef,
 }: {
-  fabricRef: React.MutableRefObject<fabric.Canvas | null>;
-  canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
+  fabricRef: React.RefObject<fabric.Canvas | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }) => {
   // get canvas element
   const canvasElement = document.getElementById("canvas");
 
   // create fabric canvas
-  const canvas = new fabric.Canvas(canvasRef.current, {
+  const canvas = new fabric.Canvas(canvasRef.current || undefined, {
     width: canvasElement?.clientWidth,
     height: canvasElement?.clientHeight,
   });
@@ -54,7 +55,7 @@ export const handleCanvasMouseDown = ({
    *
    * findTarget: http://fabricjs.com/docs/fabric.Canvas.html#findTarget
    */
-  const target = canvas.findTarget(options.e, false);
+  const target = canvas.findTarget(options.e);
 
   // set canvas drawing mode to false
   canvas.isDrawingMode = false;
@@ -237,7 +238,7 @@ export const handlePathCreated = ({
 export const handleCanvasObjectMoving = ({
   options,
 }: {
-  options: fabric.IEvent;
+  options: (fabric.TEvent & { path: CustomFabricObject<fabric.Path> }) | any;
 }) => {
   // get target object which is moving
   const target = options.target as fabric.Object;
@@ -284,18 +285,20 @@ export const handleCanvasSelectionCreated = ({
   if (!options?.selected) return;
 
   // get the selected element
-  const selectedElement = options?.selected[0] as fabric.Object;
+  const selectedElement = options?.selected[0];
 
   // if only one element is selected, set element attributes
   if (selectedElement && options.selected.length === 1) {
     // calculate scaled dimensions of the object
-    const scaledWidth = selectedElement?.scaleX
-      ? selectedElement?.width! * selectedElement?.scaleX
-      : selectedElement?.width;
+    const scaledWidth =
+      selectedElement?.width && selectedElement?.scaleX
+        ? selectedElement.width * selectedElement.scaleX
+        : selectedElement?.width ?? 0;
 
-    const scaledHeight = selectedElement?.scaleY
-      ? selectedElement?.height! * selectedElement?.scaleY
-      : selectedElement?.height;
+    const scaledHeight =
+      selectedElement?.height && selectedElement?.scaleY
+        ? selectedElement?.height * selectedElement?.scaleY
+        : selectedElement?.height ?? 0;
 
     setElementAttributes({
       width: scaledWidth?.toFixed(0).toString() || "",
@@ -320,13 +323,15 @@ export const handleCanvasObjectScaling = ({
   const selectedElement = options.target;
 
   // calculate scaled dimensions of the object
-  const scaledWidth = selectedElement?.scaleX
-    ? selectedElement?.width! * selectedElement?.scaleX
-    : selectedElement?.width;
+  const scaledWidth =
+    selectedElement?.width && selectedElement?.scaleX
+      ? selectedElement.width * selectedElement.scaleX
+      : selectedElement?.width ?? 0;
 
-  const scaledHeight = selectedElement?.scaleY
-    ? selectedElement?.height! * selectedElement?.scaleY
-    : selectedElement?.height;
+  const scaledHeight =
+    selectedElement?.height && selectedElement?.scaleY
+      ? selectedElement?.height * selectedElement?.scaleY
+      : selectedElement?.height ?? 0;
 
   setElementAttributes((prev) => ({
     ...prev,
@@ -359,11 +364,13 @@ export const renderCanvas = ({
       enlivenedObjects.forEach((enlivenedObj) => {
         // if element is active, keep it in active state so that it can be edited further
         if (activeObjectRef.current?.objectId === objectId) {
-          fabricRef.current?.setActiveObject(enlivenedObj);
+          fabricRef.current?.setActiveObject(
+            enlivenedObj as fabric.FabricObject
+          );
         }
 
         // add object to canvas
-        fabricRef.current?.add(enlivenedObj);
+        fabricRef.current?.add(enlivenedObj as fabric.FabricObject);
       });
     });
   });
@@ -392,7 +399,7 @@ export const handleCanvasZoom = ({
   options,
   canvas,
 }: {
-  options: fabric.IEvent & { e: WheelEvent };
+  options: (fabric.TEvent & { path: CustomFabricObject<fabric.Path> }) | any;
   canvas: fabric.Canvas;
 }) => {
   const delta = options.e?.deltaY;
@@ -408,7 +415,10 @@ export const handleCanvasZoom = ({
 
   // set zoom to canvas
   // zoomToPoint: http://fabricjs.com/docs/fabric.Canvas.html#zoomToPoint
-  canvas.zoomToPoint({ x: options.e.offsetX, y: options.e.offsetY }, zoom);
+  canvas.zoomToPoint(
+    { ...options.e, x: options.e.offsetX, y: options.e.offsetY },
+    zoom
+  );
 
   options.e.preventDefault();
   options.e.stopPropagation();
