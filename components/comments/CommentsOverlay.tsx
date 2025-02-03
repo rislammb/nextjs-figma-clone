@@ -28,7 +28,7 @@ export const CommentsOverlay = () => {
   return (
     <div>
       {threads
-        .filter((thread) => !thread.metadata.resolved)
+        .filter((thread) => !thread.resolved)
         .map((thread) => (
           <OverlayThread
             key={thread.id}
@@ -69,14 +69,11 @@ const OverlayThread = ({ thread, maxZIndex }: OverlayThreadProps) => {
     editThreadMetadata({
       threadId: thread.id,
       metadata: {
+        ...thread.metadata,
         zIndex: maxZIndex + 1,
       },
     });
   }, [thread, editThreadMetadata, maxZIndex]);
-
-  // if (isLoading || error) {
-  //   return null;
-  // }
 
   return (
     <div
